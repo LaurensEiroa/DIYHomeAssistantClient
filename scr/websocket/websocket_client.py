@@ -1,8 +1,10 @@
 
 import asyncio
 import websockets
-from devices.relay.control_relay import Relay
-from sensors.sht31_d.read_sht31d_zero import read_data
+from scr.utils.devices.relay.control_relay import Relay
+from scr.utils.sensors.sht31_d.read_sht31d_zero import read_data
+
+from scr.streamer.htpp_streamer.htpp_streamer import HTTPStreamer
 
 def message_processor(lamp, message):
     match message:
@@ -18,6 +20,14 @@ def message_processor(lamp, message):
         case "toggle_relay":
             lamp.toggle_relay()
             return "relay_toggled"
+        case "start_http_stream":
+            pass
+        case "stop_http_stream":
+            pass
+        case "start_udp_stream":
+            pass
+        case "stop_udp_stream":
+            pass
 
 async def handler(websocket, lamp):
     print("Client connected")

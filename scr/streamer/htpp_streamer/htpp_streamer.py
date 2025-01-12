@@ -1,51 +1,31 @@
+# HTTPStreamer class
 import cv2
-import asyncio
-from utils import HTTPStreamer
+from flask import Flask, Response
 
-class Camera:
-    def __init__(self, resolution=(640, 480)):
-        self.camera = None
-        self.streaming = False
-        self.resolution = resolution
-        self.init_camera()
+class HTTPStreamer:
+    def __init__(self, host='0.0.0.0', port=8080):
+        self.app = Flask(__name__)
+        self.host = host
+        self.port = port
+        self.frame = None
 
-    def init_camera(self):
-        self.camera = cv2.VideoCapture(0)
-        self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, self.resolution[0])
-        self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, self.resolution[1])
+        @self.app.route('/')
+        def video_feed():
+            return Response(self.generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-    async def send_frame_http(self, http_streamer):
-        while self.streaming:
-            ret, frame = self.camera.read()
-            if ret:
-                await http_streamer.send_frame(frame)
-            await asyncio.sleep(0.01)  # Small delay to prevent high CPU usage
+    # This function will stream the self.frames to the web app
+    def generate(self):
+        while True:
+            if self.frame is not None:
+                ret, jpeg = cv2.imencode('.jpg', self.frame)
+                frame = jpeg.tobytes()
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
-    def start_streaming(self):
-        self.streaming = True
+    # This function will recieve the frame coming from the camera
+    async def send_frame(self, frame):
+        self.frame = frame
 
-    def stop_streaming(self):
-        self.streaming = False
-        self.camera.release()
+    def start(self):
+        self.app.run(host=self.host, port=self.port)
 
-
-
-# Example usage
-if __name__ == "__main__":
-    print("creating camera")
-    camera = Camera(resolution=(1280,720))
-    print("creating http streamer")
-    http_streamer = HTTPStreamer()
-    
-    # Start the HTTP server
-    import threading
-    print("creating new thread")
-    server_thread = threading.Thread(target=http_streamer.start)
-    print("starting thread")
-    server_thread.start()
-    
-    # Start streaming
-    print("starting the stream")
-    camera.start_streaming()
-    print("sending frames")
-    asyncio.run(camera.send_frame_http(http_streamer))
