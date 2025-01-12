@@ -1,5 +1,8 @@
 import picamera2
 import asyncio
+import threading
+
+from scr.streamer.htpp_streamer.htpp_streamer import HTTPStreamer
 
 class Camera:
     def __init__(self, resolution=(640, 480), format='XRGB8888'):
@@ -24,34 +27,31 @@ class Camera:
     async def stream_udp(self, udp_sender):
         while self.streaming:
             frame = self.camera.capture_array()
-            udp_sender.send_frame(frame)
+            await udp_sender.send_frame(frame)
             await asyncio.sleep(0)  # Yield control to the event loop
 
-    async def stream_http(self, http_streamer):
+    async def stream_http(self):
+        print("creating http streamer")
+        http_streamer = HTTPStreamer()
+        # Start the HTTP server
+        print("creating new thread")
+        server_thread = threading.Thread(target=http_streamer.start)
+        print("starting thread")
+        server_thread.start()
+
         while self.streaming:
             frame = self.camera.capture_array()
             http_streamer.send_frame(frame)
             await asyncio.sleep(0)  # Yield control to the event loop
 
 def test_camera_http_streamer():
-    from scr.streamer.htpp_streamer.htpp_streamer import HTTPStreamer
     print("creating camera")
-    camera = Camera()#resolution=(1280, 720))
-    print("creating http streamer")
-    http_streamer = HTTPStreamer()
-    
-    # Start the HTTP server
-    import threading
-    print("creating new thread")
-    server_thread = threading.Thread(target=http_streamer.start)
-    print("starting thread")
-    server_thread.start()
-    
+    camera = Camera()#resolution=(1280, 720))    
     # Start streaming
     print("starting the stream")
     camera.start_streaming()
     print("sending frames")
-    asyncio.run(camera.stream_http(http_streamer))
+    asyncio.run(camera.stream_http())
     print("stopping the stream")
     camera.stop_streaming()
 
