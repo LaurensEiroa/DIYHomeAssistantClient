@@ -44,17 +44,17 @@ class Camera:
             await http_streamer.send_frame(frame)
             await asyncio.sleep(0)  # Yield control to the event loop
 
-def test_camera_http_streamer():
+async def test_camera_http_streamer():
     print("creating camera")
     camera = Camera()#resolution=(1280, 720))    
     # Start streaming
     print("starting the stream")
     camera.start_streaming()
     print("sending frames")
-    asyncio.run(camera.stream_http())
+    await camera.stream_http()
     print("stopping the stream")
     camera.stop_streaming()
 
 # Example usage
 if __name__ == "__main__":
-    test_camera_http_streamer()
+    asyncio.run(test_camera_http_streamer())
