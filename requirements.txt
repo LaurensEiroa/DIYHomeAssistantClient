@@ -16,3 +16,5 @@ adafruit-blinka
 # Other python packages
 opencv-python
 pandas
+asyncio
+threading

@@ -27,9 +27,7 @@ class Camera:
             with self.camera.capture_array() as frame:
                 http_streamer.send_frame(frame)
 
-
-# Example usage
-if __name__ == "__main__":
+def test_camera_http_streamer():
     from scr.streamer.htpp_streamer.htpp_streamer import HTTPStreamer
     print("creating camera")
     camera = Camera(resolution=(1280,720))
@@ -48,3 +46,8 @@ if __name__ == "__main__":
     camera.start_streaming()
     print("sending frames")
     asyncio.run(camera.send_frame_http(http_streamer))
+
+
+# Example usage
+if __name__ == "__main__":
+    test_camera_http_streamer()
