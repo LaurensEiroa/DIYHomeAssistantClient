@@ -1,49 +1,62 @@
 
 import asyncio
 import websockets
-from scr.utils.devices.relay.control_relay import Relay
-from scr.utils.sensors.sht31_d.read_sht31d_zero import read_data
 
-from scr.streamer.htpp_streamer.htpp_streamer import HTTPStreamer
+from scr.utils.sensors.sht31d.sht31d import read_data
+from scr.utils.devices.relay.mechanical_relay import Relay
+from scr.utils.picamera.picamera import Camera
 
-def message_processor(lamp, message):
-    match message:
-        case "read_sht31d":
-            temp, hum = read_data()
-            return f"Temperature: {temp} - Humidity: {hum}"
-        case "turn_on_relay":
-            lamp.turn_on_relay()
-            return "relay_on"
-        case "turn_off_relay":
-            lamp.turn_off_relay()
-            return "relay_off"
-        case "toggle_relay":
-            lamp.toggle_relay()
-            return "relay_toggled"
-        case "start_http_stream":
-            pass
-        case "stop_http_stream":
-            pass
-        case "start_udp_stream":
-            pass
-        case "stop_udp_stream":
-            pass
+class Client:
+    def __init__(self, address = "0.0.0.0", port = "8080"):
+        self.address = address
+        self.port = port
 
-async def handler(websocket, lamp):
-    print("Client connected")
-    async for message in websocket:
-        print(f"Received message: {message}")
-        answer = message_processor(lamp, message)
-        await websocket.send(f"Echo: {answer}")
+        # TODO
+        self.lamp = Relay(GPIO_PIN=18)
+        self.cam = Camera()
+        
+    async def start_server(self):
+        server = websockets.serve(lambda ws: self.handler(ws), self.address, self.port)
+        await server
+        print(f"WebSocket server on pi Zero is running on ws://{self.address}:{self.port}")
+        await asyncio.Future()  # Run forever
 
-async def main():
-    address = "0.0.0.0"
-    port = 8080
-    lamp = Relay(GPIO_PIN=26)  # Create the relay object here
-    start_server = websockets.serve(lambda ws: handler(ws, lamp), address, port)
-    await start_server
-    print(f"WebSocket server on pi Zero is running on ws://{address}:{port}")
-    await asyncio.Future()  # Run forever
+    async def handler(self,websocket):
+        print("Client connected")
+        async for message in websocket:
+            print(f"Received message: {message}")
+            answer = self.message_processor(message)
+            await websocket.send(f"Echo: {answer}")
+
+    def message_processor(self, message):
+        match message:
+            # Sensor Readings
+            case "read_sht31d":
+                temp, hum = read_data()
+                return f"Temperature: {temp} - Humidity: {hum}"
+            
+            # Light Control
+            case "turn_on_relay":
+                self.lamp.turn_on_relay()
+                return "relay_on"
+            case "turn_off_relay":
+                self.lamp.turn_off_relay()
+                return "relay_off"
+            case "toggle_relay":
+                self.lamp.toggle_relay()
+                return "relay_toggled"
+            
+            # Stream Control
+            case "start_http_stream":
+                self.cam.start_streaming()
+                pass
+            case "stop_http_stream":
+                pass
+            case "start_udp_stream":
+                pass
+            case "stop_udp_stream":
+                pass
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    cli = Client()
+    asyncio.run(cli.start_server())
