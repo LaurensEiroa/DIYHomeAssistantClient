@@ -41,7 +41,7 @@ class Camera:
 
         while self.streaming:
             frame = self.camera.capture_array()
-            http_streamer.send_frame(frame)
+            await http_streamer.send_frame(frame)
             await asyncio.sleep(0)  # Yield control to the event loop
 
 def test_camera_http_streamer():
