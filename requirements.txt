@@ -1,20 +1,20 @@
 ## Rapberry Pi modules
 # LCD
-adafruit-circuitpython-charlcd
+#adafruit-circuitpython-charlcd
 # Sht31d sensor
-adafruit-circuitpython-sht31d
-board
+#adafruit-circuitpython-sht31d
+#board
 # Scd30 sensor
-adafruit-circuitpython-busdevice
-adafruit-circuitpython-scd30
+#adafruit-circuitpython-busdevice
+#adafruit-circuitpython-scd30
 # BMP180
-Adafruit-BMP
+#Adafruit-BMP
 
 # Miscelaneous
-adafruit-blinka
+#adafruit-blinka
 
 # Other python packages
 opencv-python
-pandas
+Flask
 asyncio
 threading
