@@ -3,7 +3,7 @@ import cv2
 from flask import Flask, Response
 
 class HTTPStreamer:
-    def __init__(self, host='0.0.0.0', port=8080):
+    def __init__(self, host='0.0.0.0', port=8090):
         self.host = host
         self.port = port
         self.app = None
