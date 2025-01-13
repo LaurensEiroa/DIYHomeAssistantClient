@@ -1,6 +1,6 @@
+# HTTPStreamer class
 import cv2
 from flask import Flask, Response
-from werkzeug.serving import make_server
 
 class HTTPStreamer:
     def __init__(self, host='0.0.0.0', port=8090):
@@ -8,7 +8,6 @@ class HTTPStreamer:
         self.port = port
         self.app = None
         self.frame = None
-        self.server = None
 
     # This function will stream the self.frames to the web app
     def generate(self):
@@ -19,7 +18,7 @@ class HTTPStreamer:
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
-    # This function will receive the frame coming from the camera
+    # This function will recieve the frame coming from the camera
     async def send_frame(self, frame):
         self.frame = frame
 
@@ -30,11 +29,9 @@ class HTTPStreamer:
         def video_feed():
             return Response(self.generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-        self.server = make_server(self.host, self.port, self.app)
-        self.server.serve_forever()
+        self.app.run(host=self.host, port=self.port)
 
     def stop(self):
-        if self.server:
-            self.server.shutdown()
-            self.server = None
+        del self.app
         self.app = None
+
