@@ -32,5 +32,6 @@ class HTTPStreamer:
         self.app.run(host=self.host, port=self.port)
 
     def stop(self):
+        del self.app
         self.app = None
 
