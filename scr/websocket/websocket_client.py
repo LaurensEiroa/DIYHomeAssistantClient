@@ -58,7 +58,6 @@ class Client:
                 if self.stream_task:
                     self.stream_task.cancel()
                     self.stream_task = None
-
                 return "stream stopped"
             case "start_udp_stream":
                 pass
