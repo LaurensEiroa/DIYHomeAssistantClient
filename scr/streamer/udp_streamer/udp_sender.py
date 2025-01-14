@@ -17,3 +17,34 @@ class UDPSender:
         size = len(buffer)
         for i in range(0, size, MAX_DGRAM):
             self.server_socket.sendto(buffer[i:i+MAX_DGRAM], self.receiver_address)
+
+if __name__=="__main__":
+    # Capture video from the default camera
+    sender_ip = '192.168.1.1'  # Replace with your sender IP address
+    receiver_ip = '192.168.1.2'  # Replace with your receiver IP address
+    port = 12345  # Replace with your desired port number
+
+    udp_sender = UDPSender(sender_ip, receiver_ip, port)
+
+
+    cap = cv2.VideoCapture(0)
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        # Send the frame
+        udp_sender.send_frame(frame)
+
+        # Display the frame (optional)
+        cv2.imshow('Frame', frame)
+
+        # Break the loop on 'q' key press
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+    pass
