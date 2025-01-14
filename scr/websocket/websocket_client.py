@@ -17,8 +17,7 @@ class Client:
         self.stream_task = None
         
     async def start_server(self):
-        server = websockets.serve(lambda ws: self.handler(ws), self.address, self.port)
-        await server
+        server = await websockets.serve(lambda ws: self.handler(ws), self.address, self.port)
         print(f"WebSocket server on pi Zero is running on ws://{self.address}:{self.port}")
         await asyncio.Future()  # Run forever
 
